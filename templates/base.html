@@ -18,6 +18,36 @@
     {% block extra_css %}{% endblock %}
 
     <style>
+
+@media (max-width: 768px) {
+    #navbar-content.hidden {
+        display: none;
+    }
+    
+    #navbar-search.hidden {
+        display: none;
+    }
+    
+    #navbar-content {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        padding: 1rem;
+        border: 1px solid #e5e5e5;
+    }
+    
+    #navbar-search {
+        margin-top: 1rem;
+        width: 100%;
+    }
+}
+
+@media (min-width: 769px) {
+    #navbar-content {
+        position: relative;
+    }
+}}
         /* Hide scrollbar */
         ::-webkit-scrollbar {
             width: 0px;
@@ -229,71 +259,64 @@
 
         <!-- Main Content -->
         <main id="main-content" class="transition-width content-expanded min-h-screen bg-gray-50">
-            <!-- Navbar -->
-            <nav class="bg-white border-b border-gray-200 px-4 py-2.5">
-                <div class="flex flex-wrap justify-between items-center">
-                    <!-- Left side -->
-                    <div class="flex items-center md:hidden">
-                        <button id="mobile-menu-button" class="p-2 rounded-lg hover:bg-gray-100">
-                            <i class="fas fa-bars"></i>
-                        </button>
-                    </div>
-
-                    <!-- Collapsible content -->
-                    <div class="hidden w-full md:flex md:w-auto md:order-1" id="navbar-content">
-                        <ul class="flex flex-col md:flex-row md:space-x-8 mt-4 md:mt-0 md:items-center">
-                            <!-- Search Bar -->
-                            <li class="relative md:flex-1 max-w-md">
-                                <div class="relative">
-                                    <input type="text" class="w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none focus:border-blue-500" 
-                                           placeholder="Search...">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-search text-gray-400"></i>
-                                    </div>
-                                </div>
-                            </li>
-
-                            <!-- Notifications -->
-                            <li class="relative">
-                                <button type="button" class="flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100">
-                                    <i class="fas fa-bell"></i>
-                                </button>
-                            </li>
-
-                            <!-- User Profile -->
-                            <li class="relative">
-                                <button type="button" 
-                                        class="flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100"
-                                        id="user-menu-button" 
-                                        aria-expanded="false" 
-                                        data-dropdown-toggle="user-dropdown">
-                                    <img class="w-8 h-8 rounded-full" src="{% static 'images/default-avatar.png' %}" alt="user photo">
-                                    <span class="ml-2 hidden md:inline">{{ request.user.username }}</span>
-                                </button>
-                                <!-- Dropdown menu -->
-                                <div class="hidden absolute right-0 z-50 mt-2 w-56 text-base list-none bg-white rounded divide-y divide-gray-100 shadow" 
-                                     id="user-dropdown">
-                                    <div class="py-3 px-4">
-                                        <span class="block text-sm font-medium text-gray-900">{{ request.user.username }}</span>
-                                        <span class="block text-sm text-gray-500">{{ request.user.email }}</span>
-                                    </div>
-                                    <ul class="py-1">
-                                        <li>
-                                            <a href="{% url 'account' %}" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Account Settings</a>
-                                        </li>
-                                        <li>
-                                            <a href="{% url 'preferences' %}" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Preferences</a>
-                                        </li>
-                                        <li>
-                                            <a href="{% url 'logout' %}" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Sign out</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </li>
-                        </ul>
+<!-- Navbar -->
+<nav class="bg-white border-b border-gray-200 px-4 py-2.5">
+    <div class="flex flex-wrap justify-between items-center w-full">
+        <!-- Left side: Mobile menu button and Search -->
+        <div class="flex items-center space-x-4">
+            <button id="mobile-menu-button" class="p-2 rounded-lg hover:bg-gray-100 md:hidden">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="relative max-w-md" id="navbar-search">
+                <div class="relative">
+                    <input type="text" class="w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none focus:border-blue-500" 
+                           placeholder="Search...">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
                     </div>
                 </div>
-            </nav>
+            </div>
+        </div>
+
+        <!-- Right side: Notifications and Profile -->
+        <div class="flex items-center space-x-4" id="navbar-content">
+            <!-- Notifications -->
+            <button type="button" class="flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100">
+                <i class="fas fa-bell"></i>
+            </button>
+
+            <!-- User Profile -->
+            <button type="button" 
+                    class="flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100"
+                    id="user-menu-button" 
+                    aria-expanded="false" 
+                    data-dropdown-toggle="user-dropdown">
+                <i class="fas fa-user mr-2"></i>
+                <span class="hidden md:inline">{{ request.user.username }}</span>
+            </button>
+
+            <!-- Dropdown menu -->
+            <div class="hidden absolute right-0 z-50 mt-2 w-56 text-base list-none bg-white rounded divide-y divide-gray-100 shadow" 
+                 id="user-dropdown">
+                <div class="py-3 px-4">
+                    <span class="block text-sm font-medium text-gray-900">{{ request.user.username }}</span>
+                    <span class="block text-sm text-gray-500">{{ request.user.email }}</span>
+                </div>
+                <ul class="py-1">
+                    <li>
+                        <a href="{% url 'account' %}" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Account Settings</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'preferences' %}" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Preferences</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'logout' %}" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Sign out</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
 
             <div class="p-4 sm:p-6">
                 {% block content %}{% endblock %}
@@ -344,11 +367,8 @@
             toggleBtn?.addEventListener('click', toggleSidebar);
             mobileMenuButton?.addEventListener('click', toggleMobileMenu);
 
-            // User dropdown logic
-
-
-            // User dropdown logic
-            const userDropdownButton = document.getElementById('user-menu-button');
+          // User dropdown logic
+          const userDropdownButton = document.getElementById('user-menu-button');
             const userDropdown = document.getElementById('user-dropdown');
 
             // Toggle user dropdown
