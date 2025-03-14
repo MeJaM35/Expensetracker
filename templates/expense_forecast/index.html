@@ -7,10 +7,10 @@
         {% include 'partials/_messages.html' %}
     {% else %}
         <!-- Main Header -->
-        <div class="mb-8">
-            <h1 class="text-4xl font-extrabold text-white dark:text-white">
+        <div class="mb-8 transition-all">
+            <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white flex flex-wrap items-center">
                 Expense Forecast
-                <span class="bg-purple-900 text-purple-200 text-2xl font-semibold mr-2 px-2.5 py-0.5 rounded dark:bg-purple-900 dark:text-purple-200 ml-2">
+                <span class="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-2xl font-semibold px-3 py-1 rounded-lg ml-3 mt-2 sm:mt-0">
                     Next 30 Days
                 </span>
             </h1>
@@ -18,94 +18,144 @@
 
         <!-- Stats Overview -->
         <div class="mb-8">
-            <div class="p-6 bg-gray-800 rounded-lg shadow-lg border border-purple-700">
-                <div class="flex items-center">
-                    <div class="inline-flex flex-shrink-0 justify-center items-center w-12 h-12 text-purple-200 bg-purple-900 rounded-lg">
+            <div class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-purple-800 transition-all hover:shadow-xl transform hover:-translate-y-1 duration-300">
+                <div class="flex flex-col sm:flex-row items-center">
+                    <div class="inline-flex flex-shrink-0 justify-center items-center w-16 h-16 text-purple-700 dark:text-purple-200 bg-purple-100 dark:bg-purple-900 rounded-full mb-4 sm:mb-0">
                         <i class="fas fa-chart-line fa-2x"></i>
                     </div>
-                    <div class="ml-4">
-                        <h2 class="text-xl font-bold text-gray-100">Total Predicted Expense</h2>
-                        <p class="text-3xl font-bold text-purple-400">{{total_forecasted_expenses}}</p>
+                    <div class="text-center sm:text-left sm:ml-6">
+                        <h2 class="text-xl font-bold text-gray-700 dark:text-gray-100">Total Predicted Expense</h2>
+                        <p class="text-4xl font-bold text-purple-600 dark:text-purple-400">{{total_forecasted_expenses}}</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <!-- Daily Forecast Table -->
-            <div class="relative overflow-x-auto shadow-md sm:rounded-lg border border-purple-700">
-                <div class="p-4 bg-gray-800 border-b border-purple-700">
-                    <h2 class="text-xl font-bold text-white mb-2">Daily Forecast</h2>
+            <div class="relative overflow-hidden shadow-lg rounded-lg border border-gray-200 dark:border-purple-800 transition-all hover:shadow-xl transform hover:-translate-y-1 duration-300">
+                <div class="p-5 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-purple-800">
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2 flex items-center">
+                        <span class="mr-3 text-purple-600 dark:text-purple-400">
+                            <i class="fas fa-calendar-day"></i>
+                        </span>
+                        Daily Forecast
+                    </h2>
                 </div>
-                <table class="w-full text-sm text-left text-gray-300">
-                    <thead class="text-xs uppercase bg-purple-900 text-purple-200">
-                        <tr>
-                            <th scope="col" class="px-6 py-3">Date</th>
-                            <th scope="col" class="px-6 py-3">Forecasted Expenses</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for row in forecast_data %}
-                        <tr class="border-b bg-gray-800 border-gray-700 hover:bg-gray-700">
-                            <td class="px-6 py-4">{{ row.Date }}</td>
-                            <td class="px-6 py-4">{{ row.Forecasted_Expenses }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-700 dark:text-gray-300">
+                        <thead class="text-xs uppercase bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200">
+                            <tr>
+                                <th scope="col" class="px-6 py-4">Date</th>
+                                <th scope="col" class="px-6 py-4">Forecasted Expenses</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in forecast_data %}
+                            <tr class="border-b bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                <td class="px-6 py-4 font-medium">{{ row.Date }}</td>
+                                <td class="px-6 py-4">{{ row.Forecasted_Expenses }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- Category Breakdown Table -->
-            <div class="relative overflow-x-auto shadow-md sm:rounded-lg border border-purple-700">
-                <div class="p-4 bg-gray-800 border-b border-purple-700">
-                    <h2 class="text-xl font-bold text-white mb-2">Category Breakdown</h2>
+            <div class="relative overflow-hidden shadow-lg rounded-lg border border-gray-200 dark:border-purple-800 transition-all hover:shadow-xl transform hover:-translate-y-1 duration-300">
+                <div class="p-5 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-purple-800">
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2 flex items-center">
+                        <span class="mr-3 text-purple-600 dark:text-purple-400">
+                            <i class="fas fa-tags"></i>
+                        </span>
+                        Category Breakdown
+                    </h2>
                 </div>
-                <table class="w-full text-sm text-left text-gray-300">
-                    <thead class="text-xs uppercase bg-purple-900 text-purple-200">
-                        <tr>
-                            <th scope="col" class="px-6 py-3">Category</th>
-                            <th scope="col" class="px-6 py-3">Total Forecasted</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for category, expenses in category_forecasts.items %}
-                        <tr class="border-b bg-gray-800 border-gray-700 hover:bg-gray-700">
-                            <td class="px-6 py-4">{{ category }}</td>
-                            <td class="px-6 py-4">{{ expenses }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-700 dark:text-gray-300">
+                        <thead class="text-xs uppercase bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200">
+                            <tr>
+                                <th scope="col" class="px-6 py-4">Category</th>
+                                <th scope="col" class="px-6 py-4">Total Forecasted</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category, expenses in category_forecasts.items %}
+                            <tr class="border-b bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                <td class="px-6 py-4 font-medium">{{ category }}</td>
+                                <td class="px-6 py-4">{{ expenses }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
         <!-- Forecast Plot -->
-        <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-purple-700">
-            <div class="p-4 bg-gray-800 border-b border-purple-700">
-                <h2 class="text-xl font-bold text-white mb-2">Expense Trend Visualization</h2>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-purple-800 transition-all hover:shadow-xl transform hover:-translate-y-1 duration-300">
+            <div class="p-5 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-purple-800">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2 flex items-center">
+                    <span class="mr-3 text-purple-600 dark:text-purple-400">
+                        <i class="fas fa-chart-area"></i>
+                    </span>
+                    Expense Trend Visualization
+                </h2>
             </div>
             <div class="p-6">
-                <div class="relative rounded-lg overflow-hidden bg-gray-900 p-4">
+                <div class="relative rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-900 p-4">
                     <img 
                         src="{% static 'img/forecast_plot.png' %}" 
                         alt="Expense Forecast Plot" 
-                        class="w-full h-auto rounded-lg"
+                        class="w-full h-auto rounded-lg shadow-md"
                     >
                 </div>
             </div>
         </div>
-
-        <!-- Card Hover Effect - Add to your existing style block in base.html if not already present -->
-        <style>
-            .card-hover {
-                transition: all 0.3s ease;
-            }
-            .card-hover:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 20px rgba(134, 110, 199, 0.15);
-            }
-        </style>
     {% endif %}
 </div>
+
+<!-- Add custom styles for transitions and theme compatibility -->
+<style>
+    /* Smooth transitions for theme changes */
+    .transition-all {
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    /* Card hover effects */
+    .transform {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    /* Animation for data loading */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Apply animation to tables and cards */
+    table tbody tr {
+        animation: fadeIn 0.3s ease-out forwards;
+        animation-delay: calc(var(--row-index, 0) * 0.05s);
+    }
+    
+    /* Print-friendly adjustments */
+    @media print {
+        body {
+            background-color: white !important;
+            color: black !important;
+        }
+        
+        .container {
+            max-width: 100% !important;
+            padding: 0 !important;
+        }
+        
+        .shadow-lg, .shadow-xl {
+            box-shadow: none !important;
+        }
+    }
+</style>
 {% endblock content %}
