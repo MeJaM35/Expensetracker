@@ -143,6 +143,55 @@
 <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
 
 <script>
+// Add these functions before the DOMContentLoaded event listener
+
+function formatNewResponse(container) {
+    // Apply custom styling to new elements
+    container.querySelectorAll('a').forEach(function(link) {
+        link.classList.add('text-blue-600', 'dark:text-blue-400', 'hover:underline');
+    });
+    
+    container.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(function(heading) {
+        heading.classList.add('font-bold', 'mt-2', 'mb-1');
+    });
+    
+    container.querySelectorAll('ul, ol').forEach(function(list) {
+        list.classList.add('ml-4', 'my-2');
+    });
+    
+    container.querySelectorAll('table').forEach(function(table) {
+        table.classList.add('border-collapse', 'table-auto', 'w-full', 'text-xs', 'my-2');
+        table.querySelectorAll('th, td').forEach(function(cell) {
+            cell.classList.add('border', 'border-gray-300', 'dark:border-gray-600', 'px-2', 'py-1');
+        });
+        table.querySelectorAll('th').forEach(function(header) {
+            header.classList.add('bg-gray-200', 'dark:bg-gray-600');
+        });
+    });
+}
+
+function updateUIWithNewData(data) {
+    // Update chat history if provided
+    if (data.chat_history) {
+        const chatHistory = document.getElementById('chat-history');
+        // Keep the current scroll position
+        const wasScrolledToBottom = chatHistory.scrollHeight - chatHistory.scrollTop === chatHistory.clientHeight;
+        
+        // Update the chat history HTML
+        chatHistory.innerHTML = data.chat_history;
+        
+        // Reapply formatting to all responses
+        document.querySelectorAll('.formatted-response').forEach(function(element) {
+            formatNewResponse(element);
+        });
+        
+        // Restore scroll position if it was at bottom
+        if (wasScrolledToBottom) {
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Scroll to bottom of chat history on load
     const chatHistory = document.getElementById('chat-history');
@@ -298,9 +347,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 
                 // Update timestamp
-// Update timestamp
-const timestampElem = responseContainer.closest('.max-w-[70%]').querySelector('span');
+                const timestampElem = responseContainer.closest('.max-w-[70%]').querySelector('span');
                 timestampElem.innerHTML = '<i class="far fa-clock mr-1"></i>Just now';
+                
+                // Apply formatting to new elements
+                formatNewResponse(responseContainer);
+            }
+            
+            // If the response includes updated data, refresh the UI
+            if (data.updated_data) {
+                updateUIWithNewData(data.updated_data);
             }
             
             // Reset the form

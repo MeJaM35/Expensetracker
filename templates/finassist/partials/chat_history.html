@@ -1,0 +1,35 @@
+{% for chat in chat_history %}
+    {% if chat.user == request.user %}
+    <div class="flex justify-end space-x-2">
+        <div class="max-w-[70%]">
+            <div class="bg-blue-600 text-white p-3 rounded-tl-lg rounded-tr-lg rounded-bl-lg">
+                <p class="text-sm">{{ chat.message }}</p>
+            </div>
+            <span class="text-xs text-gray-500 dark:text-gray-400 mt-1 block text-right">
+                <i class="far fa-clock mr-1"></i>
+                {{ chat.timestamp|timesince }} ago
+            </span>
+        </div>
+        <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+            <i class="fas fa-user text-blue-600 dark:text-blue-400"></i>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="flex justify-start space-x-2">
+        <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+            <i class="fas fa-robot text-purple-600 dark:text-purple-400"></i>
+        </div>
+        <div class="max-w-[70%]">
+            <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-tl-lg rounded-tr-lg rounded-br-lg">
+                <div class="formatted-response text-sm text-gray-800 dark:text-gray-200">
+                    {{ chat.response|safe }}
+                </div>
+            </div>
+            <span class="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
+                <i class="far fa-clock mr-1"></i>
+                {{ chat.timestamp|timesince }} ago
+            </span>
+        </div>
+    </div>
+{% endfor %}

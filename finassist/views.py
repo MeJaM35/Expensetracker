@@ -8,14 +8,11 @@ from userincome.models import UserIncome
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from openai import OpenAI
+from django.template.loader import render_to_string
 
 client = OpenAI(
 	base_url="https://api-inference.huggingface.co/v1/",
-<<<<<<< HEAD
     api_key="",
-=======
-	api_key=""
->>>>>>> d911c4eeec536651dbfa30f40f569210f7fa57e3
 )
 
 # Function to get additional context
@@ -61,19 +58,17 @@ def generate_response(user_input, context):
 @csrf_exempt
 @login_required
 def chatbot_view(request):
-    chat_history = Chat.objects.filter(user=request.user).order_by('-timestamp')  # Fetch all chat history
+    chat_history = Chat.objects.filter(user=request.user).order_by('-timestamp')
 
     if request.method == 'POST':
-        # Get the user message directly from POST request
         user_message = request.POST.get('message')
 
         if user_message:
-            # Fetch context data (expenses, goals, incomes)
+            # Fetch context data
             expenses = Expense.objects.filter(owner=request.user)
             goals = Goal.objects.filter(owner=request.user)
             incomes = UserIncome.objects.filter(owner=request.user)
 
-            # Prepare the context dictionary
             context = {
                 'expenses': expenses,
                 'goals': goals,
@@ -83,10 +78,30 @@ def chatbot_view(request):
             # Generate the assistant's response
             assistant_message = generate_response(user_message, context)
 
-            # Save the user message and assistant response to the database
+            # Save to database
             Chat.objects.create(user=request.user, message=user_message, response=assistant_message)
 
-            # Reload the page with updated chat history
+            # For AJAX requests, return JSON response
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                # Get updated chat history
+                updated_chat_history = Chat.objects.filter(user=request.user).order_by('-timestamp')
+                
+                # Render the updated chat history to HTML
+                chat_history_html = render_to_string(
+                    'finassist/partials/chat_history.html',
+                    {'chat_history': updated_chat_history},
+                    request=request
+                )
+
+                return JsonResponse({
+                    'response': assistant_message,
+                    'updated_data': {
+                        'chat_history': chat_history_html
+                    }
+                })
+
+            # For regular requests, return the full page
             return render(request, 'finassist/chatbot.html', {'chat_history': chat_history})
 
+    # GET request - render the initial page
     return render(request, 'finassist/chatbot.html', {'chat_history': chat_history})
