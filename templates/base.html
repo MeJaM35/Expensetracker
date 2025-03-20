@@ -287,12 +287,12 @@
 
             <!-- User Profile -->
             <button type="button" 
-                    class="flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100"
+                    class="flex items-center justify-center text-sm rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 md:me-0 px-4 py-2" 
                     id="user-menu-button" 
                     aria-expanded="false" 
                     data-dropdown-toggle="user-dropdown">
-                <i class="fas fa-user mr-2"></i>
-                <span class="hidden md:inline">{{ request.user.username }}</span>
+                <i class="fas fa-user-circle text-2xl text-gray-600 dark:text-gray-400"></i>
+                <span class="ml-2"><b>{{request.user.username}}</b></span>
             </button>
 
             <!-- Dropdown menu -->

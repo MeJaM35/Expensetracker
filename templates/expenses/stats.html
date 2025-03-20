@@ -49,7 +49,32 @@
                 <div class="lg:col-span-1">
                     <div class="bg-gray-50 rounded-lg p-4">
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">Summary Statistics</h3>
-                        <!-- Add your statistics content here -->
+                        <!-- Total Expenses Card -->
+                        <div class="bg-white rounded-lg p-4 mb-4 shadow-sm">
+                            <h4 class="text-sm font-medium text-gray-500">Total Expenses</h4>
+                            <p class="text-2xl font-bold text-gray-900">₹{{ total_expenses|floatformat:2 }}</p>
+                        </div>
+                        
+                        <!-- Average Monthly Expenses Card -->
+                        <div class="bg-white rounded-lg p-4 mb-4 shadow-sm">
+                            <h4 class="text-sm font-medium text-gray-500">Monthly Average</h4>
+                            <p class="text-2xl font-bold text-gray-900">₹{{ monthly_average|floatformat:2 }}</p>
+                        </div>
+
+                        <!-- Top Categories -->
+                        <div class="bg-white rounded-lg p-4 mb-4 shadow-sm">
+                            <h4 class="text-sm font-medium text-gray-500 mb-2">Top Categories</h4>
+                            <div class="space-y-2">
+                                {% for category in top_categories %}
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">{{ category.name }}</span>
+                                    <span class="text-sm font-medium">₹{{ category.total|floatformat:2 }}</span>
+                                </div>
+                                {% empty %}
+                                <p class="text-sm text-gray-500">No categories found</p>
+                                {% endfor %}
+                            </div>
+                        </div>
                         <div id="chartLegend" class="space-y-2">
                             <!-- Legend will be populated by JavaScript -->
                         </div>

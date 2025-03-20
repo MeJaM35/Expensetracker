@@ -27,6 +27,11 @@ import datetime
 from .models import ExpenseLimit
 from django.core.mail import send_mail
 from django.conf import settings
+from django.db.models import Sum, Avg
+from django.utils import timezone
+from datetime import timedelta
+import json
+
 
 data = pd.read_csv('dataset.csv')
 
@@ -265,7 +270,90 @@ def expense_category_summary(request):
 
 @login_required(login_url='/authentication/login')
 def stats_view(request):
-    return render(request, 'expenses/stats.html')
+    # Get date range from request, default to 30 days
+    date_range = request.GET.get('date_range', '30')
+    
+    # Calculate date range
+    end_date = timezone.now().date()
+    start_date = end_date - timedelta(days=int(date_range))
+    
+    # Get expenses within date range
+    expenses = Expense.objects.filter(
+        owner=request.user,
+        date__gte=start_date,
+        date__lte=end_date
+    )
+    
+    # Calculate total expenses with fallback to 0
+    total_expenses = expenses.aggregate(
+        total=Sum('amount')
+    )['total'] or 0.00
+    
+    # Calculate monthly average (handle case when there are no expenses)
+    if total_expenses > 0:
+        monthly_average = total_expenses / (int(date_range) / 30)
+    else:
+        monthly_average = 0.00
+    
+    # Get expense limit for context
+    expense_limit = ExpenseLimit.objects.filter(owner=request.user).first()
+    daily_limit = expense_limit.daily_expense_limit if expense_limit else 5000
+    
+    # Get today's expenses
+    today_expenses = get_expense_of_day(request.user)
+    
+    # Get top categories with category names
+    top_categories = expenses.values('category')\
+        .annotate(total=Sum('amount'))\
+        .order_by('-total')[:5]
+    
+    # Prepare chart data
+    categories = []
+    amounts = []
+    chart_colors = [
+        '#FF6384', '#36A2EB', '#FFCE56',
+        '#4BC0C0', '#9966FF', '#FF9F40'
+    ]
+    
+    for category in top_categories:
+        categories.append(category['category'])
+        amounts.append(float(category['total']))
+    
+    chart_data = {
+        'labels': categories,
+        'datasets': [{
+            'label': 'Expenses by Category',
+            'data': amounts,
+            'backgroundColor': chart_colors[:len(categories)]
+        }]
+    }
+    
+    # Get currency preference
+    try:
+        currency = UserPreference.objects.get(user=request.user).currency
+    except UserPreference.DoesNotExist:
+        currency = '₹'  # Default to INR symbol
+    
+    context = {
+        'total_expenses': total_expenses,
+        'monthly_average': round(monthly_average, 2),
+        'daily_limit': daily_limit,
+        'today_expenses': today_expenses,
+        'top_categories': [
+            {
+                'name': cat['category'],
+                'total': cat['total'],
+                'percentage': (cat['total'] / total_expenses * 100) if total_expenses > 0 else 0
+            } 
+            for cat in top_categories
+        ],
+        'date_range': date_range,
+        'chart_data': json.dumps(chart_data),
+        'currency': currency,
+        'limit_percentage': (today_expenses / daily_limit * 100) if daily_limit > 0 else 0
+    }
+    
+    return render(request, 'expenses/stats.html', context)
 
 @login_required(login_url='/authentication/login')
 def predict_category(description):
