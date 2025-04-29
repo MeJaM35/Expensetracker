@@ -138,59 +138,72 @@ def generate_ai_recommendations(user):
             f"Savings Goals Progress: {json.dumps(financial_data['goals_summary'], indent=2)}\n\n"
         )
         
-        # Use Together AI API
-        API_URL = settings.TOGETHER_AI_API_URL
+        # Use Hugging Face API
+        # Properly encode the model name for URL construction
+        import urllib.parse
+        encoded_model = urllib.parse.quote(settings.HUGGINGFACE_MODEL)
+        API_URL = f"{settings.HUGGINGFACE_API_URL}/{encoded_model}"
+        logger.info(f"Using Hugging Face API URL: {API_URL}")
+        
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         }
         
         payload = {
-            "model": settings.HUGGINGFACE_MODEL,
-            "prompt": prompt,
-            "max_tokens": 300,
-            "temperature": 0.7,
-            "top_p": 0.9,
-            "stop": "###"
+            "inputs": prompt,
+            "parameters": {
+                "max_new_tokens": 300,
+                "temperature": 0.7,
+                "top_p": 0.9,
+                "do_sample": True,
+                "return_full_text": False
+            }
         }
         
-        # Make API request to Together AI
-        logger.info("Sending request to Together AI API")
+        # Make API request to Hugging Face
+        logger.info("Sending request to Hugging Face API")
         response = requests.post(API_URL, headers=headers, json=payload, timeout=10)
         
         # If unauthorized, use rule-based recommendations
         if response.status_code == 401:
-            logger.warning("Unauthorized access to Together AI API, using rule-based recommendations")
+            logger.warning("Unauthorized access to Hugging Face API, using rule-based recommendations")
             return get_rule_based_recommendations(financial_data)
-            
+        
+        # Log status code for debugging  
+        logger.info(f"Hugging Face API response status code: {response.status_code}")
+        
         response.raise_for_status()
         
-        # Parse the response from Together AI
+        # Parse the response from Hugging Face
         result = response.json()
         logger.info(f"API response received: {len(str(result))} characters")
         
-        # Extract text from Together AI response
-        if 'choices' in result and len(result['choices']) > 0:
-            recommendations = result['choices'][0].get('text', '').strip()
-            # Clean up the recommendations (remove any AI self-references)
-            recommendations = re.sub(r'(?i)As an AI|As a language model|As an assistant|As a financial advisor', '', recommendations)
-            recommendations = re.sub(r'(?i)Here are (3|three) tips|Here are some tips|I recommend', '', recommendations)
-            recommendations = recommendations.strip()
-            
-            # Split into list items if not already formatted
-            if not recommendations.startswith("1.") and not recommendations.startswith("-"):
-                sentences = re.split(r'(?<=[.!?])\s+', recommendations)
-                recommendations = "\n".join([f"{i+1}. {s}" for i, s in enumerate(sentences) if s.strip()])
-                
-            return recommendations
-            
+        # Extract text from Hugging Face response (structure is different from Together AI)
+        if isinstance(result, list) and len(result) > 0 and isinstance(result[0], dict) and 'generated_text' in result[0]:
+            recommendations = result[0]['generated_text'].strip()
         else:
-            logger.warning(f"Unexpected API response format: {result}")
-            return get_rule_based_recommendations(financial_data)
+            # Fallback if response format is unexpected
+            recommendations = str(result).strip()
             
+        # Clean up the recommendations (remove any AI self-references)
+        recommendations = re.sub(r'(?i)As an AI|As a language model|As an assistant|As a financial advisor', '', recommendations)
+        recommendations = re.sub(r'(?i)Here are (3|three) tips|Here are some tips|I recommend', '', recommendations)
+        recommendations = recommendations.strip()
+        
+        # Split into list items if not already formatted
+        if not recommendations.startswith("1.") and not recommendations.startswith("-"):
+            sentences = re.split(r'(?<=[.!?])\s+', recommendations)
+            recommendations = "\n".join([f"{i+1}. {sentence}" for i, sentence in enumerate(sentences) if sentence.strip()])
+        
+        # Return the cleaned recommendations
+        recommendation_list = [r.strip() for r in re.split(r'(?:\r?\n)|(?:^d+\.)|(?:^-)', recommendations) if r.strip()]
+        return recommendation_list[:3]  # Return top 3 recommendations
+        
     except Exception as e:
+        # Log the error and return rule-based recommendations
         logger.error(f"Error generating AI recommendations: {str(e)}")
-        return "1. Review your monthly budget to find potential savings.\n2. Consider setting up automatic transfers to your savings goals.\n3. Prioritize high-interest debt repayment to free up more money for savings."
+        return get_rule_based_recommendations(financial_data)
 
 def generate_rule_based_recommendations(income, expenses, cash_flow, top_expenses, goals):
     """Generate recommendations using rule-based logic rather than AI"""
