@@ -53,7 +53,6 @@ matplotlib
 mdurl
 ml-dtypes
 mpmath
-mysqlclient
 namex
 narwhals
 networkx
