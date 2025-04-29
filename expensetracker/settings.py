@@ -152,9 +152,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'jamsutkarmeetpradeep@gmail.com'
-EMAIL_HOST_PASSWORD = 'fuhhpgeobaxrnkxb'
-DEFAULT_FROM_EMAIL = 'jamsutkarmeetpradeep@gmail.com'
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+DEFAULT_FROM_EMAIL = ''
 
 
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
@@ -167,7 +167,7 @@ USE_TZ = True  # Enables timezone support
 
 # AI API Configuration
 # Hugging Face API configuration
-HUGGINGFACE_API_KEY = "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"  # Replace with your actual Hugging Face API key
+HUGGINGFACE_API_KEY = ""  # Replace with your actual Hugging Face API key
 HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models"  # Base API endpoint
 HUGGINGFACE_MODEL = "microsoft/Phi-3-mini-4k-instruct"  # Model to use for inference
 
