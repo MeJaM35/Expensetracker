@@ -86,6 +86,41 @@ def get_user_financial_data(user):
         "goals_summary": goals_summary
     }
 
+def get_rule_based_recommendations(financial_data):
+    """
+    Generate rule-based recommendations when AI recommendations are unavailable.
+    This serves as a fallback for when the API call fails.
+    """
+    recommendations = []
+    
+    # Recommendation based on income vs expenses
+    income = financial_data['total_income']
+    expenses = financial_data['total_expenses']
+    
+    if expenses > income * 0.9:
+        recommendations.append("Your expenses are over 90% of your income. Consider reviewing your budget to reduce expenses and increase your savings rate.")
+    
+    # Recommendation based on top expense categories
+    top_categories = financial_data['top_expense_categories']
+    if top_categories and len(top_categories) > 0:
+        highest_category = top_categories[0]
+        recommendations.append(f"Your highest spending category is {highest_category['category']}. Look for ways to reduce spending in this area to accelerate your progress toward your goals.")
+    
+    # Generic recommendation for goals
+    recommendations.append("Set up automated transfers to your savings accounts right after you receive your income to ensure consistent progress toward your financial goals.")
+    
+    # Ensure we have at least 3 recommendations
+    generic_recommendations = [
+        "Consider using the 50/30/20 rule: allocate 50% of income to needs, 30% to wants, and 20% to savings and debt repayment.",
+        "Track all expenses diligently to identify spending patterns and opportunities for savings.",
+        "Review and adjust your financial goals quarterly to ensure they remain relevant and achievable."
+    ]
+    
+    while len(recommendations) < 3:
+        recommendations.append(generic_recommendations[len(recommendations) - 3])
+    
+    return recommendations[:3]  # Return top 3 recommendations
+
 def generate_ai_recommendations(user):
     try:
         logger.info(f"Generating AI recommendations for user {user.id}")
@@ -104,7 +139,7 @@ def generate_ai_recommendations(user):
         )
         
         # Use Together AI API
-        API_URL = settings.HUGGINGFACE_API_URL
+        API_URL = settings.TOGETHER_AI_API_URL
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
