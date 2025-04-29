@@ -1,138 +1,258 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expense Report</title>
+    <title>Financial Report</title>
     
     <!-- Flowbite CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet">
+    
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     
     <style>
         :root {
-            color-scheme: light dark;
+            /* Light mode colors */
+            --bg-primary-light: #ffffff;
+            --bg-secondary-light: #f3f4f6;
+            --text-primary-light: #111827;
+            --text-secondary-light: #374151;
+            --text-tertiary-light: #6b7280;
+            --border-light: #e5e7eb;
+            
+            /* Dark mode colors */
+            --bg-primary-dark: #1f2937;
+            --bg-secondary-dark: #111827;
+            --text-primary-dark: #f9fafb;
+            --text-secondary-dark: #e5e7eb;
+            --text-tertiary-dark: #9ca3af;
+            --border-dark: #374151;
+            
+            /* Status colors */
+            --positive: #10b981;
+            --neutral: #6b7280;
+            --negative: #ef4444;
         }
         
-        .logo {
-            font-weight: 700;
-            color: var(--primary-color, #10B981);
+        /* Base styles */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
         }
         
-        .dark .status-positive {
-            color: #34D399;
+        /* Light mode (default) */
+        body {
+            background-color: var(--bg-primary-light);
+            color: var(--text-primary-light);
         }
         
-        .dark .status-neutral {
-            color: #FBBF24;
+        /* Dark mode */
+        body.dark {
+            background-color: var(--bg-primary-dark);
+            color: var(--text-primary-dark);
         }
         
-        .dark .status-negative {
-            color: #EF4444;
+        /* Card styling */
+        .bg-white {
+            background-color: var(--bg-primary-light);
         }
         
-        .light .status-positive {
-            color: #059669;
+        .dark .bg-white {
+            background-color: var(--bg-primary-dark);
         }
         
-        .light .status-neutral {
-            color: #D97706;
+        .dark\:bg-gray-800 {
+            background-color: var(--bg-secondary-light);
         }
         
-        .light .status-negative {
-            color: #DC2626;
+        .dark .dark\:bg-gray-800 {
+            background-color: var(--bg-secondary-dark);
+        }
+        
+        .border-gray-200 {
+            border-color: var(--border-light);
+        }
+        
+        .dark .border-gray-200 {
+            border-color: var(--border-dark);
+        }
+        
+        .text-gray-900 {
+            color: var(--text-primary-light);
+        }
+        
+        .dark .text-gray-900 {
+            color: var(--text-primary-dark);
+        }
+        
+        .text-white {
+            color: #ffffff;
+        }
+        
+        .dark .text-white {
+            color: var(--text-primary-dark);
+        }
+        
+        /* Status colors */
+        .status-positive {
+            color: var(--positive);
+        }
+        
+        .status-neutral {
+            color: var(--neutral);
+        }
+        
+        .status-negative {
+            color: var(--negative);
+        }
+        
+        /* Container styles */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .mx-auto {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .px-4 {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        .py-8 {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        
+        .mb-8 {
+            margin-bottom: 2rem;
+        }
+        
+        .mb-4 {
+            margin-bottom: 1rem;
+        }
+        
+        .text-xl {
+            font-size: 1.25rem;
+            line-height: 1.75rem;
+        }
+        
+        .font-semibold {
+            font-weight: 600;
+        }
+        
+        .shadow-md {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .dark .shadow-md {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+        }
+        
+        .rounded-lg {
+            border-radius: 0.5rem;
+        }
+        
+        .p-6 {
+            padding: 1.5rem;
+        }
+        
+        /* Grid system */
+        .grid {
+            display: grid;
+        }
+        
+        .md\:grid-cols-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        
+        .gap-4 {
+            gap: 1rem;
+        }
+        
+        /* Flex utilities */
+        .flex {
+            display: flex;
+        }
+        
+        .items-center {
+            align-items: center;
+        }
+        
+        .justify-between {
+            justify-content: space-between;
+        }
+        
+        /* Icons */
+        .fa-circle-check {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+        
+        .fa-circle-minus {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+        
+        .fa-circle-exclamation {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+        
+        .text-3xl {
+            font-size: 1.875rem;
+            line-height: 2.25rem;
+        }
+        
+        .mr-2 {
+            margin-right: 0.5rem;
         }
     </style>
 </head>
 
-<body class="bg-white dark:bg-gray-900">
+<body>
     <div class="container mx-auto px-4 py-8">
-        <div class="text-center mb-8">
-            <h1 class="logo text-4xl mb-2">
-                <i class="fas fa-chart-line mr-2"></i>WealthWizard
-            </h1>
-            <h2 class="text-3xl font-bold text-gray-900 dark:text-white">Expense Report</h2>
-        </div>
-
-        {% if incomes %}
-        <!-- Income Section -->
         <div class="mb-8">
-            <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-                <i class="fas fa-money-bill-trend-up mr-2"></i>Total Income
-            </h3>
-            <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                        <tr>
-                            <th scope="col" class="px-6 py-3">Date</th>
-                            <th scope="col" class="px-6 py-3">Source</th>
-                            <th scope="col" class="px-6 py-3">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for income in incomes %}
-                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                            <td class="px-6 py-4">{{ income.date }}</td>
-                            <td class="px-6 py-4">{{ income.source }}</td>
-                            <td class="px-6 py-4">{{ income.amount }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="relative overflow-x-auto shadow-md rounded-lg">
+                <!-- Report content goes here -->
             </div>
         </div>
-        {% endif %}
-
-        {% if expenses %}
-        <!-- Expenses Section -->
-        <div class="mb-8">
-            <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-                <i class="fas fa-receipt mr-2"></i>Total Expenses
-            </h3>
-            <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                        <tr>
-                            <th scope="col" class="px-6 py-3">Date</th>
-                            <th scope="col" class="px-6 py-3">Category</th>
-                            <th scope="col" class="px-6 py-3">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for expense in expenses %}
-                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                            <td class="px-6 py-4">{{ expense.date }}</td>
-                            <td class="px-6 py-4">{{ expense.category }}</td>
-                            <td class="px-6 py-4">{{ expense.amount }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        {% endif %}
 
         {% if total_income is not None and total_expense is not None %}
         <!-- Summary Section -->
         <div class="mb-8">
             <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-                <i class="fas fa-piggy-bank mr-2"></i>Summary
+                Financial Summary
             </h3>
+            
             <div class="grid md:grid-cols-2 gap-4">
                 <div class="p-6 bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
                     <div class="flex items-center justify-between mb-4">
-                        <h5 class="text-xl font-bold text-gray-900 dark:text-white">Total Income</h5>
-                        <span class="text-2xl font-semibold text-gray-900 dark:text-white">{{ total_income }}</span>
-                    </div>
-                    <div class="flex items-center justify-between mb-4">
-                        <h5 class="text-xl font-bold text-gray-900 dark:text-white">Total Expenses</h5>
-                        <span class="text-2xl font-semibold text-gray-900 dark:text-white">{{ total_expense }}</span>
+                        <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Income vs Expenses</h4>
                     </div>
                     <div class="flex items-center justify-between">
-                        <h5 class="text-xl font-bold text-gray-900 dark:text-white">Total Savings</h5>
-                        <span class="text-2xl font-semibold text-gray-900 dark:text-white">{{ savings }}</span>
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">Total Income</p>
+                            <p class="text-lg font-bold text-gray-900 dark:text-white">₹{{ total_income }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">Total Expenses</p>
+                            <p class="text-lg font-bold text-gray-900 dark:text-white">₹{{ total_expense }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">Net Savings</p>
+                            <p class="text-lg font-bold {% if savings > 0 %}text-green-600 dark:text-green-400{% elif savings < 0 %}text-red-600 dark:text-red-400{% else %}text-gray-600 dark:text-gray-400{% endif %}">
+                                ₹{{ savings }}
+                            </p>
+                        </div>
                     </div>
                 </div>
                 
@@ -141,17 +261,17 @@
                     {% if savings > 0 %}
                     <div class="flex items-center">
                         <i class="fas fa-circle-check text-3xl mr-2 status-positive"></i>
-                        <p class="status-positive">You saved money this period!</p>
+                        <p class="status-positive font-medium">You saved money this period!</p>
                     </div>
                     {% elif savings == 0 %}
                     <div class="flex items-center">
                         <i class="fas fa-circle-minus text-3xl mr-2 status-neutral"></i>
-                        <p class="status-neutral">Your income and expenses balanced.</p>
+                        <p class="status-neutral font-medium">Your income and expenses balanced.</p>
                     </div>
                     {% else %}
                     <div class="flex items-center">
                         <i class="fas fa-circle-exclamation text-3xl mr-2 status-negative"></i>
-                        <p class="status-negative">Your expenses exceeded your income this period.</p>
+                        <p class="status-negative font-medium">Your expenses exceeded your income this period.</p>
                     </div>
                     {% endif %}
                 </div>
@@ -160,22 +280,21 @@
         {% endif %}
     </div>
 
-    <!-- JavaScript Dependencies -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+    <!-- Font Awesome -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
+    
+    <!-- JavaScript for dark mode detection (server-side rendering compatible) -->
     <script>
-        // Check system theme preference
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.body.classList.add('dark');
-        }
-        
-        // Listen for system theme changes
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-            if (e.matches) {
+        // This script is only for preview purposes - PDFs will be statically rendered
+        // Check if we're in a browser environment
+        if (typeof window !== 'undefined') {
+            // Set dark mode based on system preference without adding event listeners
+            // since PDFs are static and won't respond to theme changes
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (prefersDark) {
                 document.body.classList.add('dark');
-            } else {
-                document.body.classList.remove('dark');
             }
-        });
+        }
     </script>
 </body>
 </html>

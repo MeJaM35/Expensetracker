@@ -13,18 +13,17 @@
                 transform: scale(1.1);">
     </div>
     
-    <!-- Dark overlay -->
-    <div class="absolute inset-0 bg-black/60 z-10"></div>
+    <!-- Dark overlay with improved contrast -->
+    <div class="absolute inset-0 bg-black/75 dark:bg-black/80 z-10"></div>
     
     <!-- Main Content -->
     <div class="max-w-4xl mx-auto px-4 relative z-20">
-        <!-- Header -->
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-white">Goal List</h2>
+            <h1 class="text-3xl font-bold text-white">Financial Goals</h1>
             <a href="{% url 'add_goal' %}" 
-               class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300">
+               class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-lg text-sm transition-colors duration-200">
                 <i class="fas fa-plus mr-2"></i>
-                Add Goal
+                Add New Goal
             </a>
         </div>
 
@@ -33,18 +32,13 @@
         <!-- AI Recommendations Section -->
         {% if ai_recommendations %}
         <div class="mb-8">
-            <div class="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl overflow-hidden">
-                <div class="bg-purple-50/90 dark:bg-purple-900/30 px-6 py-4 border-b border-purple-100 dark:border-purple-900">
-                    <h3 class="text-lg font-semibold text-purple-900 dark:text-white flex items-center">
-                        <i class="fas fa-robot mr-2 text-purple-600 dark:text-purple-400"></i>
-                        AI Recommendations
-                    </h3>
-                </div>
-                
-                <div class="p-6 space-y-4">
-                    <div class="formatted-content prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300">
-                        {{ ai_recommendations|safe }}
-                    </div>
+            <div class="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-xl p-6 border-l-4 border-blue-500 dark:border-blue-400">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center">
+                    <i class="fas fa-robot text-blue-500 dark:text-blue-400 mr-2"></i>
+                    Personalized Recommendations
+                </h2>
+                <div class="formatted-content text-gray-700 dark:text-gray-200">
+                    {{ ai_recommendations|safe }}
                 </div>
             </div>
         </div>
@@ -53,88 +47,55 @@
         <!-- Goals List -->
         <div class="space-y-6">
             {% for goal in goals %}
-            <div id="goal-{{ goal.id }}" class="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl overflow-hidden">
-                <!-- Goal Header -->
-                <div class="bg-emerald-50 dark:bg-emerald-900/30 px-6 py-4 border-b border-emerald-100 dark:border-emerald-900">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ goal.name }}</h3>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-sm font-medium px-2 py-1 rounded-full 
-                                {% if goal.calculate_progress.is_on_track %}
-                                    bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200
-                                {% else %}
-                                    bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200
-                                {% endif %}
-                            ">
-                                {% if goal.calculate_progress.is_on_track %}
-                                    <i class="fas fa-check-circle mr-1"></i>On Track
-                                {% else %}
-                                {% endif %}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Goal Content -->
+            <div id="goal-{{ goal.id }}" class="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-xl overflow-hidden">
                 <div class="p-6 space-y-4">
-                    <!-- Goal Details -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-2">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">
-                                <span class="font-medium">Start Date:</span> 
-                                {{ goal.start_date }}
-                            </p>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">
-                                <span class="font-medium">End Date:</span> 
-                                {{ goal.end_date }}
-                            </p>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">
-                                <span class="font-medium">Days Remaining:</span> 
-                                {{ goal.calculate_progress.days_remaining }}
+                        <div class="space-y-1">
+                            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">{{ goal.name }}</h2>
+                            <p class="text-gray-600 dark:text-gray-300">
+                                <i class="far fa-calendar-alt mr-1"></i>
+                                Target: {{ goal.end_date|date:"M d, Y" }}
                             </p>
                         </div>
-                        <div class="space-y-2">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">
-                                <span class="font-medium">Target Amount:</span> 
-                                ₹{{ goal.amount_to_save|floatformat:2 }}
-                            </p>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">
-                                <span class="font-medium">Current Saved:</span> 
-                                ₹{{ goal.current_saved_amount|floatformat:2 }}
-                            </p>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">
-                                <span class="font-medium">Remaining:</span> 
-                                ₹{{ goal.calculate_progress.amount_remaining|floatformat:2 }}
-                            </p>
+                        <div class="space-y-1 text-right">
+                            <div class="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                                {{ goal.current_saved_amount }} / {{ goal.amount_to_save }}
+                            </div>
+                            <div class="text-sm text-gray-600 dark:text-gray-300">
+                                {% with progress=goal.calculate_progress %}
+                                {{ progress.saved_percentage }}% completed
+                                {% endwith %}
+                            </div>
                         </div>
                     </div>
 
                     <!-- Progress Bar -->
                     <div class="relative pt-1">
-                        <div class="flex items-center justify-between mb-2">
-                            <div class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Progress
-                            </div>
-                            <div class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {{ goal.calculate_progress.saved_percentage|floatformat:1 }}%
-                            </div>
-                        </div>
-                        <div class="overflow-hidden h-2 text-xs flex rounded bg-emerald-100 dark:bg-emerald-900/50">
-                            <div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-emerald-500 dark:bg-emerald-400"
-                                 style="width: {{ goal.calculate_progress.saved_percentage }}%">
+                        {% with progress=goal.calculate_progress %}
+                        <div class="overflow-hidden h-5 mb-2 text-xs flex rounded-full bg-gray-200 dark:bg-gray-700">
+                            <div style="width:{{ progress.saved_percentage }}%" 
+                                 class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center {% if progress.saved_percentage < 33 %}bg-red-500{% elif progress.saved_percentage < 66 %}bg-yellow-500{% else %}bg-green-500{% endif %}">
+                                <span class="font-bold">{{ progress.saved_percentage }}%</span>
                             </div>
                         </div>
+                        {% endwith %}
                     </div>
 
                     <!-- Daily Savings Required -->
                     <div class="bg-blue-100 dark:bg-blue-900/30 rounded-lg p-4">
-                        <p class="text-sm text-black-800 dark:text-black-200">
-                            <span class="font-medium">Daily Savings Required:</span> 
-                            ₹{{ goal.calculate_progress.daily_savings_required|floatformat:2 }}
-                        </p>
+                        {% with progress=goal.calculate_progress %}
+                        <h3 class="font-medium text-gray-800 dark:text-gray-100 mb-2">Daily Savings Needed</h3>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600 dark:text-gray-300 text-sm">
+                                <i class="fas fa-piggy-bank mr-1"></i>
+                                Save daily:
+                            </span>
+                            <span class="font-bold text-gray-800 dark:text-gray-100">
+                                {{ progress.daily_savings_required }}
+                            </span>
+                        </div>
+                        {% endwith %}
                     </div>
-
-
 
                     <!-- Forms -->
                     <div class="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -143,41 +104,31 @@
                             {% csrf_token %}
                             <div class="flex gap-2">
                                 <div class="flex-1">
-                                    <label for="id_additional_amount_{{ goal.id }}" class="sr-only">Additional Amount</label>
+                                    <label for="id_additional_amount" class="sr-only">Amount to Add</label>
                                     <div class="relative">
-                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">₹</span>
-                                        <input 
-                                            type="number" 
-                                            name="additional_amount" 
-                                            id="id_additional_amount_{{ goal.id }}"
-                                            min="0"
-                                            step="0.01"
-                                            required
-                                            placeholder="Enter amount"
-                                            class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 pl-8 pr-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400"
-                                        >
+                                        <input type="number" name="additional_amount" id="id_additional_amount" step="any" min="0" 
+                                               class="block w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
+                                               placeholder="Amount to add">
                                     </div>
                                 </div>
-                                <button type="submit" 
-                                        class="inline-flex items-center px-3 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 dark:focus:ring-offset-gray-800 transition-colors duration-200">
-                                    <i class="fas fa-plus mr-2"></i>
-                                    Add
+                                <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white font-medium rounded-lg text-sm">
+                                    <i class="fas fa-plus mr-1"></i> Add
                                 </button>
                             </div>
                         </form>
 
                         <div class="flex gap-2">
                             <!-- Edit Goal Button -->
-
+                            <a href="#" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 dark:bg-yellow-600 dark:hover:bg-yellow-700 text-white font-medium rounded-lg text-sm">
+                                <i class="fas fa-edit"></i>
+                            </a>
 
                             <!-- Delete Form -->
                             <form method="post" action="{% url 'delete_goal' goal.id %}">
                                 {% csrf_token %}
-                                <button type="submit" 
-                                        onclick="return confirm('Are you sure you want to delete this goal?')"
-                                        class="inline-flex items-center px-3 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800 transition-colors duration-200">
-                                    <i class="fas fa-trash-alt mr-2"></i>
-                                    Delete
+                                <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white font-medium rounded-lg text-sm" 
+                                        onclick="return confirm('Are you sure you want to delete this goal?')">
+                                    <i class="fas fa-trash-alt"></i>
                                 </button>
                             </form>
                         </div>
@@ -185,7 +136,7 @@
                 </div>
             </div>
             {% empty %}
-            <div class="text-center py-12 bg-white/95 backdrop-blur-sm rounded-lg shadow-xl">
+            <div class="text-center py-12 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-xl">
                 <i class="fas fa-piggy-bank text-4xl text-gray-400 dark:text-gray-500 mb-4"></i>
                 <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">No goals yet</h3>
                 <p class="text-gray-500 dark:text-gray-400 mb-6">Create your first savings goal to get started!</p>
@@ -218,17 +169,25 @@ document.addEventListener('DOMContentLoaded', function() {
             element.innerHTML = marked.parse(rawContent);
         }
         
-       // Apply custom styling to elements
-       element.querySelectorAll('a').forEach(function(link) {
+        // Apply custom styling to elements
+        element.querySelectorAll('a').forEach(function(link) {
             link.classList.add('text-blue-600', 'dark:text-blue-400', 'hover:underline');
         });
         
         element.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(function(heading) {
-            heading.classList.add('font-bold', 'mt-2', 'mb-1');
+            heading.classList.add('font-bold', 'mt-2', 'mb-1', 'text-gray-800', 'dark:text-gray-100');
         });
         
         element.querySelectorAll('ul, ol').forEach(function(list) {
             list.classList.add('ml-4', 'my-2');
+        });
+        
+        element.querySelectorAll('li').forEach(function(item) {
+            item.classList.add('text-gray-700', 'dark:text-gray-200');
+        });
+        
+        element.querySelectorAll('p').forEach(function(paragraph) {
+            paragraph.classList.add('text-gray-700', 'dark:text-gray-200', 'mb-3');
         });
         
         element.querySelectorAll('table').forEach(function(table) {
@@ -237,12 +196,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 cell.classList.add('border', 'border-gray-300', 'dark:border-gray-600', 'px-2', 'py-1');
             });
             table.querySelectorAll('th').forEach(function(header) {
-                header.classList.add('bg-gray-200', 'dark:bg-gray-600');
+                header.classList.add('bg-gray-200', 'dark:bg-gray-600', 'text-gray-800', 'dark:text-gray-200');
+            });
+            table.querySelectorAll('td').forEach(function(data) {
+                data.classList.add('text-gray-700', 'dark:text-gray-300');
             });
         });
     });
-    
-
     
     // Handle system theme preference
     function setThemePreference() {
@@ -271,6 +231,11 @@ document.addEventListener('DOMContentLoaded', function() {
     font-weight: 700;
     margin-top: 1rem;
     margin-bottom: 0.5rem;
+    color: #1f2937;
+}
+
+.dark .formatted-content h1 {
+    color: #f3f4f6;
 }
 
 .formatted-content h2 {
@@ -278,6 +243,11 @@ document.addEventListener('DOMContentLoaded', function() {
     font-weight: 700;
     margin-top: 1rem;
     margin-bottom: 0.5rem;
+    color: #1f2937;
+}
+
+.dark .formatted-content h2 {
+    color: #f3f4f6;
 }
 
 .formatted-content h3 {
@@ -285,26 +255,51 @@ document.addEventListener('DOMContentLoaded', function() {
     font-weight: 600;
     margin-top: 1rem;
     margin-bottom: 0.5rem;
+    color: #1f2937;
+}
+
+.dark .formatted-content h3 {
+    color: #f3f4f6;
 }
 
 .formatted-content p {
     margin-bottom: 0.75rem;
+    color: #374151;
+}
+
+.dark .formatted-content p {
+    color: #e5e7eb;
 }
 
 .formatted-content ul {
     list-style-type: disc;
     padding-left: 1.5rem;
     margin: 0.75rem 0;
+    color: #374151;
+}
+
+.dark .formatted-content ul {
+    color: #e5e7eb;
 }
 
 .formatted-content ol {
     list-style-type: decimal;
     padding-left: 1.5rem;
     margin: 0.75rem 0;
+    color: #374151;
+}
+
+.dark .formatted-content ol {
+    color: #e5e7eb;
 }
 
 .formatted-content li {
     margin-bottom: 0.25rem;
+    color: #374151;
+}
+
+.dark .formatted-content li {
+    color: #e5e7eb;
 }
 
 .formatted-content a {
@@ -336,6 +331,11 @@ document.addEventListener('DOMContentLoaded', function() {
 .formatted-content code {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     font-size: 0.85em;
+    color: #111827;
+}
+
+.dark .formatted-content code {
+    color: #f9fafb;
 }
 
 /* Inline code */
@@ -357,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() {
     border-left: 4px solid #e5e7eb;
     padding-left: 1rem;
     margin: 1rem 0;
-    color: #6b7280;
+    color: #4b5563;
 }
 
 .dark .formatted-content blockquote {

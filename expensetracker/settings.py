@@ -168,10 +168,14 @@ USE_TZ = True  # Enables timezone support
 # AI API Configuration
 # Hugging Face API configuration
 HUGGINGFACE_API_KEY = "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"  # Replace with your actual Hugging Face API key
+HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models"  # Base API endpoint
 HUGGINGFACE_MODEL = "microsoft/Phi-3-mini-4k-instruct"  # Model to use for inference
 
-# Legacy settings kept for backward compatibility
+# Together AI configuration
 TOGETHER_API_KEY = os.environ.get('TOGETHER_API_KEY', '')
+TOGETHER_AI_API_URL = "https://api.together.xyz/v1/completions"  # Standard Together AI API endpoint
+
+# Legacy settings kept for backward compatibility
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
 OPENAI_MODEL = "gpt-3.5-turbo"
 

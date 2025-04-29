@@ -19,6 +19,13 @@ import re
 # Set up logging
 logger = logging.getLogger(__name__)
 
+# Custom JSON encoder to handle Decimal objects
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        return super(DecimalEncoder, self).default(obj)
+
 def get_user_financial_data(user):
     """
     Gather and process user's financial data for AI recommendations.
@@ -66,7 +73,7 @@ def get_user_financial_data(user):
         
         # Determine if goal is on track
         days_passed = (timezone.now().date() - goal.start_date).days
-        total_days = (goal.target_date - goal.start_date).days
+        total_days = (goal.end_date - goal.start_date).days if goal.end_date else 0  # Use end_date instead of target_date
         expected_progress = (days_passed / total_days * 100) if total_days > 0 else 0
         
         status = "on_track" if percent_complete >= expected_progress else "behind"
@@ -122,6 +129,7 @@ def get_rule_based_recommendations(financial_data):
     return recommendations[:3]  # Return top 3 recommendations
 
 def generate_ai_recommendations(user):
+    financial_data = None  # Initialize the variable outside the try block
     try:
         logger.info(f"Generating AI recommendations for user {user.id}")
         api_key = settings.HUGGINGFACE_API_KEY
@@ -129,13 +137,13 @@ def generate_ai_recommendations(user):
         # Get user's financial data
         financial_data = get_user_financial_data(user)
         
-        # Create detailed prompt
+        # Create detailed prompt - Convert Decimal objects to float for JSON serialization
         prompt = (
             f"As a financial advisor, suggest 3 actionable tips to help this person reach their savings goals faster. Be specific and concise.\n\n"
             f"Monthly Income: ₹{financial_data['total_income']:.2f}\n"
             f"Monthly Expenses: ₹{financial_data['total_expenses']:.2f}\n"
-            f"Top Expense Categories: {json.dumps(financial_data['top_expense_categories'], indent=2)}\n"
-            f"Savings Goals Progress: {json.dumps(financial_data['goals_summary'], indent=2)}\n\n"
+            f"Top Expense Categories: {json.dumps(financial_data['top_expense_categories'], cls=DecimalEncoder)}\n"
+            f"Savings Goals Progress: {json.dumps(financial_data['goals_summary'], cls=DecimalEncoder)}\n\n"
         )
         
         # Use InferenceClient for Hugging Face API to handle model properly
@@ -179,19 +187,63 @@ def generate_ai_recommendations(user):
         recommendations = re.sub(r'(?i)Here are (3|three) tips|Here are some tips|I recommend', '', recommendations)
         recommendations = recommendations.strip()
         
-        # Split into list items if not already formatted
-        if not recommendations.startswith("1.") and not recommendations.startswith("-"):
-            sentences = re.split(r'(?<=[.!?])\s+', recommendations)
-            recommendations = "\n".join([f"{i+1}. {sentence}" for i, sentence in enumerate(sentences) if sentence.strip()])
+        # Format recommendations into a list
+        recommendation_list = []
         
-        # Return the cleaned recommendations
-        recommendation_list = [r.strip() for r in re.split(r'(?:\r?\n)|(?:^d+\.)|(?:^-)', recommendations) if r.strip()]
-        return recommendation_list[:3]  # Return top 3 recommendations
+        # Try to parse numbered list items
+        numbered_items = re.findall(r'(?:^|\n)(\d+\.\s*.*?)(?=(?:\n\d+\.)|$)', recommendations, re.DOTALL)
+        if numbered_items:
+            recommendation_list = [item.strip() for item in numbered_items]
+        else:
+            # Fall back to splitting by sentences or bullet points
+            sentences = re.split(r'(?<=[.!?])\s+', recommendations)
+            recommendation_list = [s.strip() for s in sentences if s.strip()]
+        
+        # Limit to 3 recommendations and format with Markdown
+        recommendation_list = recommendation_list[:3]
+        
+        # Format recommendations with Markdown
+        markdown_recommendations = "## Ways to Reach Your Financial Goals Faster\n\n"
+        
+        for i, rec in enumerate(recommendation_list):
+            # Clean up any existing numbering
+            clean_rec = re.sub(r'^\d+\.\s*', '', rec).strip()
+            
+            # Split into title and details if possible
+            parts = clean_rec.split(':', 1)
+            if len(parts) == 2:
+                title = parts[0].strip()
+                details = parts[1].strip()
+                markdown_recommendations += f"### {i+1}. {title}\n{details}\n\n"
+            else:
+                markdown_recommendations += f"### Tip {i+1}\n{clean_rec}\n\n"
+        
+        # Add a conclusion
+        markdown_recommendations += "Start implementing these strategies today to accelerate your progress toward financial goals!"
+        
+        return markdown_recommendations
         
     except Exception as e:
-        # Log the error and return rule-based recommendations
+        # Log the error and return rule-based recommendations or generic recommendations
         logger.error(f"Error generating AI recommendations: {str(e)}")
-        return get_rule_based_recommendations(financial_data)
+        
+        if financial_data is not None:
+            # If we have financial data, use it for rule-based recommendations
+            return get_rule_based_recommendations(financial_data)
+        else:
+            # If no financial data is available, return generic recommendations with markdown formatting
+            markdown_recommendations = "## Ways to Improve Your Financial Health\n\n"
+            
+            generic_tips = [
+                "Use the 50/30/20 rule: allocate 50% of income to needs, 30% to wants, and 20% to savings and debt repayment.",
+                "Track all expenses diligently to identify spending patterns and opportunities for savings.",
+                "Review and adjust your financial goals quarterly to ensure they remain relevant and achievable."
+            ]
+            
+            for i, tip in enumerate(generic_tips):
+                markdown_recommendations += f"### Tip {i+1}\n{tip}\n\n"
+            
+            return markdown_recommendations
 
 def generate_rule_based_recommendations(income, expenses, cash_flow, top_expenses, goals):
     """Generate recommendations using rule-based logic rather than AI"""
