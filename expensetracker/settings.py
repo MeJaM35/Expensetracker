@@ -165,4 +165,17 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 TIME_ZONE = 'Asia/Kolkata'  # Set to Indian Standard Time
 USE_TZ = True  # Enables timezone support
 
+# AI API Configuration
+# Hugging Face API configuration
+HUGGINGFACE_API_KEY = "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"  # Replace with your actual Hugging Face API key
+HUGGINGFACE_MODEL = "microsoft/Phi-3-mini-4k-instruct"  # Model to use for inference
+
+# Legacy settings kept for backward compatibility
+TOGETHER_API_KEY = os.environ.get('TOGETHER_API_KEY', '')
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+OPENAI_MODEL = "gpt-3.5-turbo"
+
+# AI Provider Configuration
+AI_PROVIDER = "huggingface"  # Using Hugging Face for inference
+
 

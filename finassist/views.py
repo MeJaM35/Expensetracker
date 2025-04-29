@@ -9,22 +9,19 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.template.loader import render_to_string
 from django.db import models
-import requests
 import json
-from huggingface_hub import InferenceClient
+from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Sum, Avg, Count
 from datetime import timedelta
 from django.utils import timezone
 import re
 import logging
+from huggingface_hub import InferenceClient
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Update to use Together AI provider through huggingface_hub
-TOGETHER_API_KEY = ""  # Replace with your actual API key
 
 # Function to get optimized context with advanced techniques for handling large datasets
 def get_combined_context(user):
@@ -152,9 +149,9 @@ def get_combined_context(user):
 
 # Function to generate chatbot response with improved handling of large context
 def generate_response(user_input, context):
-    # Create a more optimized summary of the context for the prompt
-    # Focus on most relevant data for the specific user query
-    
+    # Check if API key is available
+    api_key = settings.HUGGINGFACE_API_KEY
+        
     # Extract keywords from user query to prioritize relevant context
     keywords = extract_query_keywords(user_input.lower())
     
@@ -196,55 +193,157 @@ def generate_response(user_input, context):
     # Format the context to be more concise and useful
     context_prompt = format_context_for_model(relevant_context)
     
-    # Prepare the system message for the model - enhanced instructions for cleaner responses
-    system_message = (
-        "You are a financial assistant providing direct advice about personal finances. "
-        "Respond clearly and concisely without any meta-commentary, preambles, or self-reflection. "
-        "Do not include phrases like 'As an AI' or 'Based on the data provided'. "
-        "Do not preface your answers with explanations about your reasoning process. "
-        "Simply provide knowledgeable financial advice based on the user's data and question. "
-        "Always use INR as currency in your responses. "
-        "If asked about data you don't have, state that you don't have that information rather than making assumptions. "
-        "Keep responses focused, actionable, and within 3-4 paragraphs maximum."
-    )
-    
     try:
-        # Initialize the InferenceClient with Together AI provider
+        # Create a prompt for the model
+        system_message = (
+            "You are a financial assistant providing direct advice about personal finances. "
+            "Provide a concise, direct, and helpful response focused on the user's question. "
+            "Use INR as currency and don't include phrases like 'As an AI' or 'Based on the data'."
+        )
+        
+        user_message = f"Here is the user's financial data:\n{context_prompt}\n\nUser question: {user_input}"
+        
+        # Create InferenceClient for Hugging Face API
         client = InferenceClient(
-            provider="together",
-            api_key=TOGETHER_API_KEY,
+            provider="hf-inference",
+            api_key=api_key,
         )
         
-        # Create the messages for the chat completion with user context added to the user message
-        messages = [
-            {
-                "role": "system",
-                "content": system_message
-            },
-            {
-                "role": "user",
-                "content": f"Here is my financial data:\n{context_prompt}\n\nMy question is: {user_input}"
-            }
-        ]
+        try:
+            # Make API request to Hugging Face
+            logger.info(f"Sending request to Hugging Face API with model: {settings.HUGGINGFACE_MODEL}")
+            
+            completion = client.chat.completions.create(
+                model=settings.HUGGINGFACE_MODEL,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": system_message
+                    },
+                    {
+                        "role": "user",
+                        "content": user_message
+                    }
+                ],
+                max_tokens=512,
+            )
+            
+            # Extract text from Hugging Face response
+            assistant_response = completion.choices[0].message.content
+            
+        except Exception as api_error:
+            logger.warning(f"Hugging Face API error: {str(api_error)}")
+            logger.warning("Falling back to rule-based responses")
+            return generate_rule_based_response(user_input, relevant_context)
         
-        # Make the API call with a better model for direct responses and tuned parameters
-        completion = client.chat.completions.create(
-            model="mistralai/Mixtral-8x7B-Instruct-v0.1",
-            messages=messages,
-            max_tokens=512,
-            temperature=0.3,
-            top_p=0.9,
-            frequency_penalty=0.5,
-        )
-        
-        # Extract and clean the response using enhanced post-processing
-        assistant_response = clean_model_response(completion.choices[0].message.content)
+        # Clean up the response
+        assistant_response = clean_model_response(assistant_response)
         
         return assistant_response
         
     except Exception as e:
         logger.error(f"Error with model: {str(e)}")
-        return "I apologize, but I'm having trouble processing your request right now. Please try again later."
+        # Use rule-based response as fallback
+        return generate_rule_based_response(user_input, relevant_context)
+
+def is_basic_financial_query(query):
+    """Check if query is a basic financial question that can be answered with rules"""
+    basic_patterns = [
+        r'how (much|many) .*(spen[td]|save[d])',
+        r'what .* (expense|spending|budget|goal)',
+        r'show me .* (expense|income|budget|goal)',
+        r'compare .* (income|expense|spending)',
+        r'highest .* (expense|spending|cost)',
+        r'lowest .* (expense|spending|cost)',
+        r'budget .* advice',
+        r'financial .* tip',
+        r'how to save',
+        r'suggest .* budget',
+    ]
+    
+    query = query.lower()
+    return any(re.search(pattern, query) for pattern in basic_patterns)
+
+def generate_rule_based_response(query, context):
+    """Generate responses based on predefined rules and templates"""
+    query = query.lower()
+    
+    # Extract relevant data from context
+    top_expenses = []
+    spending_trend = None
+    total_expenses = 0
+    total_income = 0
+    goals = []
+    
+    # Get expense information
+    if 'top_categories' in context:
+        top_expenses = context.get('top_categories', [])
+    if 'spending_trend' in context:
+        spending_trend = context.get('spending_trend')
+    if 'expenses' in context:
+        expenses = context.get('expenses', [])
+        total_expenses = sum(exp.get('amount', 0) for exp in expenses) if expenses else 0
+    
+    # Get income information
+    if 'income' in context:
+        income = context.get('income', [])
+        total_income = sum(inc.get('amount', 0) for inc in income) if income else 0
+    
+    # Get goals information
+    if 'goals' in context:
+        goals = context.get('goals', [])
+    
+    # Query about expenses
+    if any(word in query for word in ['expense', 'spending', 'spent', 'cost']):
+        if 'highest' in query or 'top' in query or 'most' in query:
+            if top_expenses:
+                top = top_expenses[0]
+                return f"Your highest expense category is '{top.get('category', 'Unknown')}' at ₹{top.get('total', 0):.2f}, which makes up about {(top.get('total', 0)/total_expenses*100):.1f}% of your total expenses if you have other tracked expenses."
+            else:
+                return "I don't have enough information about your expense categories."
+                
+        if 'trend' in query or 'compare' in query or 'month' in query:
+            if spending_trend:
+                direction = "increased" if spending_trend.get('direction') == 'up' else "decreased"
+                return f"Your spending has {direction} by {abs(spending_trend.get('change_percent', 0)):.1f}% compared to last month."
+            else:
+                return "I don't have enough historical data to analyze your spending trends."
+                
+        return "Based on your recent transactions, you've spent ₹{:.2f} across your tracked expenses.".format(total_expenses)
+    
+    # Query about income
+    if any(word in query for word in ['income', 'earn', 'salary', 'money in']):
+        if total_income > 0:
+            return f"Your recent income records show earnings of ₹{total_income:.2f}."
+        else:
+            return "I don't have any recent income information for you."
+            
+    # Query about goals
+    if any(word in query for word in ['goal', 'target', 'save for', 'saving for']):
+        if goals:
+            goal_list = [f"'{g.get('name', 'Unnamed goal')}' ({g.get('progress', 0):.1f}% complete)" for g in goals]
+            if len(goal_list) == 1:
+                return f"You have one active savings goal: {goal_list[0]}."
+            else:
+                return f"You have {len(goal_list)} active savings goals: " + ", ".join(goal_list) + "."
+        else:
+            return "You don't have any active savings goals set up. Would you like to create one?"
+            
+    # Query about budgeting advice
+    if any(phrase in query for phrase in ['budget', 'advice', 'tip', 'suggestion', 'help me', 'how to']):
+        if total_income > 0 and total_expenses > 0:
+            savings_rate = (total_income - total_expenses) / total_income * 100
+            if savings_rate < 0:
+                return "You're currently spending more than your income. Focus on reducing expenses in your top categories and creating a monthly budget."
+            elif savings_rate < 20:
+                return f"Your current savings rate is approximately {savings_rate:.1f}%. Financial experts recommend saving at least 20% of your income. Look for ways to reduce expenses or increase income."
+            else:
+                return f"You're saving about {savings_rate:.1f}% of your income, which is good. Consider investing some of your savings for long-term growth, and make sure you have an emergency fund covering 3-6 months of expenses."
+        else:
+            return "For better budgeting, use the 50/30/20 rule: allocate 50% of your income to needs, 30% to wants, and at least 20% to savings and debt repayment."
+    
+    # General query
+    return "I can help you analyze your expenses, track your savings goals, or provide budgeting advice. What specific aspect of your finances would you like to know about?"
 
 # Helper function to extract keywords from user query
 def extract_query_keywords(query):
